@@ -1,5 +1,5 @@
 # Guide-to-Assembly-Language-Programming-in-Linux
-Authors: Sivarama P. Dandamudi  
+Author: Sivarama P. Dandamudi  
 Publisher ‏ : ‎ Springer  
 Publication date ‏ : ‎ 15 July 2005  
 Edition ‏ : ‎ 2005th  
