@@ -1,4 +1,3 @@
-extern   proc_PutStr
 extern   proc_GetStr, proc_GetCh
 extern   proc_PutInt, proc_GetInt
 extern   proc_PutLInt, proc_GetLInt
@@ -94,7 +93,7 @@ _start:
 	;'''''''''''''''''''''''''''''''
 	SECTION .text
 	pusha
-	mov     al, %1
+	mov     al, %1  ;pointer to haracter
 	mov     [%%CHAR], al
 	mov     eax, SYS_WRITE
 	mov     ebx, STDOUT
@@ -104,18 +103,32 @@ _start:
 	popa
 %endmacro
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;-------------------------------------------------------------------------
+; PutStr source
+; source: memory
+; Displays the NULL-terminated string at source
 
-
-;;-------------------------------------------------------------------
 %macro  PutStr  1 
-        push    ECX
-        mov     ECX,%1
-        call    proc_PutStr
-        pop     ECX
-%endmacro
-;;-------------------------------------------------------------------
+        pusha
+        pushf
+        mov ecx, %1   ;pointer to string
+        mov ebx, STDOUT
+        mov edx, 1    ;length of a character
 
+        %%rpt_putstr:
+        mov eax, SYS_WRITE
+        cmp byte [ecx], 0  ;null-termination check
+        je %%skip_putstr
+        int 0x80      ;print a character
+        inc ecx       ;next character
+        jmp %%rpt_putstr
+
+        %%skip_putstr:
+        popf
+        popa
+%endmacro
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;-------------------------------------------------------------------
 %macro  GetStr  1-2 81
