@@ -11,7 +11,7 @@ BASENAME="$(basename ${BASENAME} .s)"
 set -e
 set -x
 
-nasm -f elf64      "${ASSEMBLY}"   -o "${BASENAME}".o
+nasm -f elf64      "${ASSEMBLY}"   -o "${BASENAME}".o   -l "${BASENAME}".lst
 ld   -m elf_x86_64 "${BASENAME}".o -o "${BASENAME}".out
 rm "${BASENAME}".o
 
