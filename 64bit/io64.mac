@@ -1,0 +1,211 @@
+extern   proc_nwln, proc_PutStr
+extern   proc_GetStr, proc_GetCh
+extern   proc_PutInt, proc_GetInt
+extern   proc_PutLInt, proc_GetLInt
+
+STDIN  equ 0
+STDOUT equ 1
+STDERR equ 2
+ 
+SYS_READ  equ 0
+SYS_WRITE equ 1
+SYS_EXIT  equ 60
+
+;;-------------------------------------------------------------------
+%macro  .STARTUP  0
+;group dgroup .data .bss
+        global   _start
+_start:
+%endmacro
+;;-------------------------------------------------------------------
+
+
+;;;-------------------------------------------------------------------------
+; .EXIT
+; terminate program and return 0
+
+%macro  .EXIT  0
+        mov    rax, SYS_EXIT
+        xor    rdi, rdi  ;set rdi to zero as return code
+        syscall
+%endmacro
+
+;;-------------------------------------------------------------------
+%macro  .DATA 0
+        segment .data
+%endmacro
+;;-------------------------------------------------------------------
+
+;;-------------------------------------------------------------------
+%macro  .UDATA 0
+        segment .bss
+%endmacro
+;;-------------------------------------------------------------------
+
+;;-------------------------------------------------------------------
+%macro  .CODE 0
+        segment .data
+        segment .bss
+        segment .text
+%endmacro
+;;-------------------------------------------------------------------
+
+
+;;-------------------------------------------------------------------
+%macro  nwln  0 
+        call    proc_nwln
+%endmacro
+;;-------------------------------------------------------------------
+
+
+;;;-------------------------------------------------------------------------
+; push / pop all registers
+ 
+%macro pushall 0
+	push rax
+	push rbx
+	push rcx
+	push rdx
+	push rsi
+	push rdi
+	push rbp
+	push r8
+	push r9
+	push r10
+	push r11
+	push r12
+	push r13
+	push r14
+	push r15
+%endmacro
+ 
+%macro popall 0
+	pop r15
+	pop r14
+	pop r13
+	pop r12
+	pop r11
+	pop r10
+	pop r9
+	pop r8
+	pop rbp
+	pop rdi
+	pop rsi
+	pop rdx
+	pop rcx
+	pop rbx
+	pop rax
+%endmacro
+
+;;;-------------------------------------------------------------------------
+; PutCh source
+; source: value / register / memory
+; Displays the character located at source
+
+%macro  PutCh  1
+	;'''''''''''''''''''''''''''''''
+	SECTION .bss
+	%%CHAR resb 1
+
+	;'''''''''''''''''''''''''''''''
+	SECTION .text
+	pushall
+	mov     al, %1
+	mov     [%%CHAR], al
+	mov     rax, SYS_WRITE
+	mov     rdi, STDOUT
+	mov     rsi, %%CHAR
+	mov     rdx, 1  ;length of a character
+	syscall
+	popall
+%endmacro
+
+;;-------------------------------------------------------------------
+%macro  PutStr  1 
+        push    ECX
+        mov     ECX,%1
+        call    proc_PutStr
+        pop     ECX
+%endmacro
+;;-------------------------------------------------------------------
+
+
+;;-------------------------------------------------------------------
+%macro  GetStr  1-2 81
+        push    ESI
+        push    EDI
+        mov     EDI,%1
+        mov     ESI,%2
+        call    proc_GetStr
+        pop     EDI
+        pop     ESI
+%endmacro
+;;-------------------------------------------------------------------
+
+
+;;-------------------------------------------------------------------
+%macro  GetCh   1
+        push    SI
+        xor     SI,SI
+%ifidni %1,AL
+        ;inc     SI
+        call    proc_GetCh
+%elifidni %1,AH
+        mov     SI,1
+        call    proc_GetCh
+%else
+        push    AX
+        call    proc_GetCh
+        mov     %1,AL
+        pop     AX
+%endif
+        pop     SI
+%endmacro
+;;-------------------------------------------------------------------
+
+
+;;-------------------------------------------------------------------
+%macro  PutInt  1
+        push    AX
+        mov     AX,%1
+        call    proc_PutInt
+        pop     AX
+%endmacro
+;;-------------------------------------------------------------------
+
+
+;;-------------------------------------------------------------------
+%macro  GetInt  1
+%ifnidni %1,AX
+        push    AX
+        call    proc_GetInt
+        mov     %1,AX
+	  pop     AX
+%else 
+        call  proc_GetInt
+%endif
+%endmacro
+;;-------------------------------------------------------------------
+
+;;-------------------------------------------------------------------
+%macro  PutLInt  1
+        push    EAX
+        mov     EAX,%1
+        call    proc_PutLInt
+        pop     EAX
+%endmacro
+;;-------------------------------------------------------------------
+
+;;-------------------------------------------------------------------
+%macro  GetLInt  1
+%ifnidni %1,EAX
+        push    EAX
+        call    proc_GetLInt
+        mov     %1,EAX
+	  pop     EAX
+%else 
+        call  proc_GetLInt
+%endif
+%endmacro
+;;-------------------------------------------------------------------
+
