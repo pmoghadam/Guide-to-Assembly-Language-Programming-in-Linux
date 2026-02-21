@@ -61,7 +61,7 @@ _start:
 ;;;-------------------------------------------------------------------------
 ; push / pop all registers
  
-%macro pushall 0
+%macro PushAll 0
 	push rax
 	push rbx
 	push rcx
@@ -79,7 +79,7 @@ _start:
 	push r15
 %endmacro
  
-%macro popall 0
+%macro PopAll 0
 	pop r15
 	pop r14
 	pop r13
@@ -109,7 +109,7 @@ _start:
 
 	;'''''''''''''''''''''''''''''''
 	SECTION .text
-	pushall
+	PushAll
 	mov     al, %1
 	mov     [%%CHAR], al
 	mov     rax, SYS_WRITE
@@ -117,7 +117,7 @@ _start:
 	mov     rsi, %%CHAR
 	mov     rdx, 1  ;length of a character
 	syscall
-	popall
+	PopAll
 %endmacro
 
 ;;-------------------------------------------------------------------
