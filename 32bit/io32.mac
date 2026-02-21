@@ -1,15 +1,18 @@
-extern   proc_nwln, proc_PutStr
+extern   proc_PutStr
 extern   proc_GetStr, proc_GetCh
 extern   proc_PutInt, proc_GetInt
 extern   proc_PutLInt, proc_GetLInt
 
-STDIN  equ 0
-STDOUT equ 1
-STDERR equ 2
+;;;-------------------------------------------------------------------------
+; Constants
+
+STDIN         equ 0
+STDOUT        equ 1
+STDERR        equ 2
  
-SYS_READ  equ 3
-SYS_WRITE equ 4
-SYS_EXIT  equ 1
+SYS_READ      equ 3
+SYS_WRITE     equ 4
+SYS_EXIT      equ 1
 
 ;;;-------------------------------------------------------------------------
 ; .STARTUP
@@ -57,15 +60,26 @@ _start:
         SECTION .bss
         SECTION .text
 %endmacro
-;;-------------------------------------------------------------------
 
+;;;-------------------------------------------------------------------------
+; nwln
+; print newline character
 
-;;-------------------------------------------------------------------
 %macro  nwln  0 
-        call    proc_nwln
-%endmacro
-;;-------------------------------------------------------------------
+	;'''''''''''''''''''''''''''''''
+	SECTION .data
+	%%NEWLINE db 10
 
+	;'''''''''''''''''''''''''''''''
+	SECTION .text
+	pusha
+	mov    eax, SYS_WRITE
+	mov    ebx, STDOUT
+	mov    ecx, %%NEWLINE
+	mov    edx, 1 ;length of newline character
+	int    0x80
+	popa
+%endmacro
 
 ;;;-------------------------------------------------------------------------
 ; PutCh source
@@ -89,6 +103,9 @@ _start:
 	int     0x80
 	popa
 %endmacro
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 
 ;;-------------------------------------------------------------------
 %macro  PutStr  1 
