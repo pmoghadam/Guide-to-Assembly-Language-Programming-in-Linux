@@ -1,4 +1,4 @@
-extern   proc_GetStr, proc_GetCh
+extern   proc_GetCh
 extern   proc_PutInt, proc_GetInt
 extern   proc_PutLInt, proc_GetLInt
 
@@ -18,19 +18,10 @@ SYS_EXIT        equ 1
 ; Seup global access code
 
 %macro .STARTUP 0
-;group dgroup .data .bss
+
         global  _start
-_start:
-%endmacro
+	_start:
 
-;;;-------------------------------------------------------------------------
-; .EXIT
-; terminate program and return 0
-
-%macro .EXIT 0
-        mov     eax, SYS_EXIT
-        xor     ebx, ebx  ;set ebx to zero as return code
-        int     0x80
 %endmacro
 
 ;;;-------------------------------------------------------------------------
@@ -38,7 +29,9 @@ _start:
 ; Initialized data
 
 %macro .DATA 0
+
         SECTION .data
+
 %endmacro
 
 ;;;-------------------------------------------------------------------------
@@ -46,25 +39,41 @@ _start:
 ; Uninitialized data
 
 %macro .UDATA 0
-        SECTION .bss
-%endmacro
 
+        SECTION .bss
+
+%endmacro
 
 ;;;-------------------------------------------------------------------------
 ; .CODE
 ; Code section
 
 %macro .CODE 0
+
         SECTION .data
         SECTION .bss
         SECTION .text
+
+%endmacro
+
+;;;-------------------------------------------------------------------------
+; .EXIT
+; terminate program and return 0
+
+%macro .EXIT 0
+
+        mov     eax, SYS_EXIT
+        xor     ebx, ebx  ;set ebx to zero as return code
+        int     0x80
+
 %endmacro
 
 ;;;-------------------------------------------------------------------------
 ; nwln
 ; print newline character
 
-%macro  nwln  0 
+%macro nwln 0 
+
 	;'''''''''''''''''''''''''''''''
 	SECTION .data
 	%%NEWLINE db 10
@@ -78,6 +87,7 @@ _start:
 	mov     edx, 1  ;length of newline character
 	int     0x80
 	popa
+
 %endmacro
 
 ;;;-------------------------------------------------------------------------
@@ -85,7 +95,8 @@ _start:
 ; source: value / register / memory
 ; Displays the character located at source
 
-%macro  PutCh  1
+%macro PutCh 1
+
 	;'''''''''''''''''''''''''''''''
 	SECTION .bss
 	%%CHAR resb 1
@@ -101,6 +112,7 @@ _start:
 	mov     edx, 1  ;length of a character
 	int     0x80
 	popa
+
 %endmacro
 
 ;;;-------------------------------------------------------------------------
@@ -108,7 +120,8 @@ _start:
 ; source: memory
 ; Displays the NULL-terminated string at source
 
-%macro  PutStr  1 
+%macro PutStr 1 
+
         pusha
         pushf
         mov     ecx, %1   ;pointer to string
@@ -126,8 +139,8 @@ _start:
         %%skip_putstr:
         popf
         popa
-%endmacro
 
+%endmacro
 
 ;;;-------------------------------------------------------------------------
 ; GetStr dest [,buf_size] 
@@ -136,6 +149,7 @@ _start:
 ; as a NULL-terminated string. Maximum string length is buf_size-1
 
 %macro  GetStr  1-2 81
+
 	;'''''''''''''''''''''''''''''''
 	SECTION .bss
 	%%TMP resb 256
@@ -168,6 +182,7 @@ _start:
 	mov     byte [ebx], 0  ;replace newline with NULL
 	popf
 	popa
+
 %endmacro
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
