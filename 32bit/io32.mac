@@ -5,21 +5,21 @@ extern   proc_PutLInt, proc_GetLInt
 ;;;-------------------------------------------------------------------------
 ; Constants
 
-STDIN         equ 0
-STDOUT        equ 1
-STDERR        equ 2
+STDIN           equ 0
+STDOUT          equ 1
+STDERR          equ 2
  
-SYS_READ      equ 3
-SYS_WRITE     equ 4
-SYS_EXIT      equ 1
+SYS_READ        equ 3
+SYS_WRITE       equ 4
+SYS_EXIT        equ 1
 
 ;;;-------------------------------------------------------------------------
 ; .STARTUP
 ; Seup global access code
 
-%macro  .STARTUP  0
+%macro .STARTUP 0
 ;group dgroup .data .bss
-        global   _start
+        global  _start
 _start:
 %endmacro
 
@@ -27,17 +27,17 @@ _start:
 ; .EXIT
 ; terminate program and return 0
 
-%macro  .EXIT  0
-        mov    eax, SYS_EXIT
-        xor    ebx, ebx  ;set ebx to zero as return code
-        int    0x80
+%macro .EXIT 0
+        mov     eax, SYS_EXIT
+        xor     ebx, ebx  ;set ebx to zero as return code
+        int     0x80
 %endmacro
 
 ;;;-------------------------------------------------------------------------
 ; .DATA
 ; Initialized data
 
-%macro  .DATA 0
+%macro .DATA 0
         SECTION .data
 %endmacro
 
@@ -45,7 +45,7 @@ _start:
 ; .UDATA
 ; Uninitialized data
 
-%macro  .UDATA 0
+%macro .UDATA 0
         SECTION .bss
 %endmacro
 
@@ -54,7 +54,7 @@ _start:
 ; .CODE
 ; Code section
 
-%macro  .CODE 0
+%macro .CODE 0
         SECTION .data
         SECTION .bss
         SECTION .text
@@ -72,11 +72,11 @@ _start:
 	;'''''''''''''''''''''''''''''''
 	SECTION .text
 	pusha
-	mov    eax, SYS_WRITE
-	mov    ebx, STDOUT
-	mov    ecx, %%NEWLINE
-	mov    edx, 1 ;length of newline character
-	int    0x80
+	mov     eax, SYS_WRITE
+	mov     ebx, STDOUT
+	mov     ecx, %%NEWLINE
+	mov     edx, 1  ;length of newline character
+	int     0x80
 	popa
 %endmacro
 
@@ -111,16 +111,16 @@ _start:
 %macro  PutStr  1 
         pusha
         pushf
-        mov ecx, %1   ;pointer to string
-        mov ebx, STDOUT
-        mov edx, 1    ;length of a character
+        mov     ecx, %1   ;pointer to string
+        mov     ebx, STDOUT
+        mov     edx, 1    ;length of a character
 
         %%rpt_putstr:
-        mov eax, SYS_WRITE
-        cmp byte [ecx], 0  ;null-termination check
-        je %%skip_putstr
-        int 0x80      ;print a character
-        inc ecx       ;next character
+        mov     eax, SYS_WRITE
+        cmp     byte [ecx], 0  ;null-termination check
+        je  %%skip_putstr
+        int     0x80      ;print a character
+        inc     ecx       ;next character
         jmp %%rpt_putstr
 
         %%skip_putstr:
@@ -128,20 +128,49 @@ _start:
         popa
 %endmacro
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;;-------------------------------------------------------------------
+;;;-------------------------------------------------------------------------
+; GetStr dest [,buf_size] 
+; dest: memory
+; Reads a carriage-return-terminated string into dest and stores it
+; as a NULL-terminated string. Maximum string length is buf_size-1
+
 %macro  GetStr  1-2 81
-        push    ESI
-        push    EDI
-        mov     EDI,%1
-        mov     ESI,%2
-        call    proc_GetStr
-        pop     EDI
-        pop     ESI
-%endmacro
-;;-------------------------------------------------------------------
+	;'''''''''''''''''''''''''''''''
+	SECTION .bss
+	%%TMP resb 256
 
+	;'''''''''''''''''''''''''''''''
+	SECTION .text
+	pusha
+	pushf
+	mov     eax, SYS_READ
+	mov     ebx, STDIN
+	mov     ecx, %%TMP
+	mov     edx, 256   ;length of temp buffer
+	int     0x80       ;input string to temp buffer
+
+	mov     ecx, %2    ;length of buffer parameter
+	dec     ecx
+	mov     ebx, %1    ;buffer parameter
+	mov     esi, %%TMP
+
+	%%loop_getstr:
+	mov     al, byte [esi]
+	cmp     al, 10     ;search for newline
+	je  %%done_getstr
+	mov     byte [ebx], al
+	inc     ebx
+	inc     esi
+	loop    %%loop_getstr
+
+	%%done_getstr:
+	mov     byte [ebx], 0  ;replace newline with NULL
+	popf
+	popa
+%endmacro
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;-------------------------------------------------------------------
 %macro  GetCh   1
