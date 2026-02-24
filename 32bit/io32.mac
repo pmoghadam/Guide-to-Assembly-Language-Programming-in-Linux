@@ -93,6 +93,7 @@ SYS_EXIT        equ 1
 ;;;-------------------------------------------------------------------------
 ; PutCh source
 ; source: value / register / memory
+; size: 8bits
 ; Displays the character located at source
 
 %macro PutCh 1
@@ -118,9 +119,10 @@ SYS_EXIT        equ 1
 ;;;-------------------------------------------------------------------------
 ; PutStr source
 ; source: memory
+; size: variable
 ; Displays the NULL-terminated string at source
 
-%macro PutStr 1 
+%macro PutStr 1
 
         pusha
         pushf
@@ -145,6 +147,7 @@ SYS_EXIT        equ 1
 ;;;-------------------------------------------------------------------------
 ; GetStr dest [,buf_size] 
 ; dest: memory
+; size: variable
 ; Reads a carriage-return-terminated string into dest and stores it
 ; as a NULL-terminated string. Maximum string length is buf_size-1
 
@@ -185,28 +188,46 @@ SYS_EXIT        equ 1
 
 %endmacro
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;-------------------------------------------------------------------------
+; GetCh dest
+; dest: register / memory
+; size: 8 bits
+; Reads a character into dest
 
-;;-------------------------------------------------------------------
-%macro  GetCh   1
-        push    SI
-        xor     SI,SI
-%ifidni %1,AL
-        ;inc     SI
-        call    proc_GetCh
-%elifidni %1,AH
-        mov     SI,1
-        call    proc_GetCh
+%macro GetCh 1
+
+	;'''''''''''''''''''''''''''''''
+	SECTION .bss
+	%%CHAR resb 1
+
+	;'''''''''''''''''''''''''''''''
+	SECTION .text
+
+	pushf
+	pusha
+
+	mov    eax, SYS_READ
+	mov    ebx, STDIN
+	mov    ecx, %%CHAR
+	mov    edx, 0x100 ;len 256 char
+	int    0x80
+
+	popa
+%ifidni %1,al
+	mov     al,[%%CHAR]
+%elifidni %1,ah
+	mov     ah,[%%CHAR]
 %else
-        push    AX
-        call    proc_GetCh
-        mov     %1,AL
-        pop     AX
+	push    ax
+	mov     al,[%%CHAR]
+	mov	%1, al
+	pop     ax
 %endif
-        pop     SI
-%endmacro
-;;-------------------------------------------------------------------
+	pushf
 
+%endmacro
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;-------------------------------------------------------------------
 %macro  PutInt  1
