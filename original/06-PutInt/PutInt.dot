@@ -1,0 +1,271 @@
+/*
+
+  dot -Tsvg  PutInt.dot -o PutInt.svg
+  dot -Gsize=10,15 -Tpng PutInt.dot -o PutInt.png
+
+PutInt source
+source: register / memory
+size: 16 bits
+Displays the signed 16-bit number located at source
+
+%macro  PutInt  1
+        push    AX
+        mov     AX,%1
+        call    proc_PutInt
+        pop     AX
+%endmacro
+
+
+; box01 ------------------------------------------------------------
+000000bb <proc_PutInt>:
+  bb:	60                   	pusha
+  bc:	be 01 01 00 00       	mov    esi,0x101 ;buffer
+  c1:	c6 06 20             	mov    BYTE PTR [esi],0x20 ;space
+  c4:	66 3d 00 00          	cmp    ax,0x0
+  c8:	7d 06                	jge    d0 <proc_PutInt.pi_positive>
+; box02 ------------------------------------------------------------
+  ca:	c6 06 2d             	mov    BYTE PTR [esi],0x2d ;minus
+  cd:	66 f7 d8             	neg    ax
+; box03 ------------------------------------------------------------
+000000d0 <proc_PutInt.pi_positive>:
+  d0:	66 bb 0a 00          	mov    bx,0xa  ;divisor for separating digits
+  d4:	81 c6 06 00 00 00    	add    esi,0x6 ;max number length plus a sign or space : ' 32768'
+  da:	c6 06 00             	mov    BYTE PTR [esi],0x0 ; null-termination
+  dd:	4e                   	dec    esi
+  de:	66 b9 05 00          	mov    cx,0x5 ;digit counter
+; box04 ------------------------------------------------------------
+000000e2 <proc_PutInt.putint_repeat>:
+  e2:	66 ba 00 00          	mov    dx,0x0 ;should be zero before div
+  e6:	66 f7 f3             	div    bx     ;put a digit in dl (as remainder), keep the rest in ax
+  e9:	80 c2 30             	add    dl,0x30 ;convert digit to ascii char
+  ec:	88 16                	mov    BYTE PTR [esi],dl ;put character to buffer
+  ee:	4e                   	dec    esi ;point to next char (to the left)
+  ef:	66 49                	dec    cx  ;add counter
+  f1:	66 3d 00 00          	cmp    ax,0x0 ;check if number is zero (less than 5 digits)
+  f5:	75 eb                	jne    e2 <proc_PutInt.putint_repeat> ;go for next digit
+; box05 ------------------------------------------------------------
+  f7:	67 e3 0e             	jcxz   108 <proc_PutInt.pi_write_number> ; If CX is zero, all digits have been written
+; box06 ------------------------------------------------------------
+  fa:	8a 1d 01 01 00 00    	mov    bl,BYTE PTR ds:0x101
+ 100:	88 1e                	mov    BYTE PTR [esi],bl
+ 102:	80 fb 20             	cmp    bl,0x20
+ 105:	75 01                	jne    108 <proc_PutInt.pi_write_number>
+; box07 ------------------------------------------------------------
+ 107:	46                   	inc    esi
+; box08 ------------------------------------------------------------
+00000108 <proc_PutInt.pi_write_number>:
+ 108:	89 f1                	mov    ecx,esi
+ 10a:	e8 28 ff ff ff       	call   37 <proc_PutStr>
+ 10f:	61                   	popa
+ 110:	c3                   	ret
+
+*/
+
+
+digraph g {
+  fontname="Helvetica,Arial,sans-serif"
+  node [fontname="Helvetica,Arial,sans-serif"]
+  edge [fontname="Helvetica,Arial,sans-serif"]
+  graph [fontsize=30 labelloc="t" label="" splines=true overlap=false rankdir = "TB"];
+  ratio = auto;
+  "box01" [ 
+	style = "filled"
+	penwidth = 1 
+	fillcolor = "white" 
+	fontname = "Courier New" 
+	shape = "Mrecord" 
+	label =<
+		<table border="0" cellborder="0" cellpadding="3" bgcolor="white">
+
+		<tr><td bgcolor="black" align="center" colspan="2">
+				<font color="white">PutInt:</font>
+		</td></tr>
+
+		<tr><td align="left" port="r0"> pusha
+		</td></tr> 
+		<tr><td align="left" port="r0"> mov    esi,0x101
+		</td></tr> 
+		<tr><td align="left" port="r0"> mov    BYTE [esi],0x20
+		</td></tr> 
+		<tr><td align="left" port="r0"> cmp    ax,0x0
+		</td></tr> 
+		<tr><td align="left" port="r0"> jge    .pi_positive
+		</td></tr> 
+
+		</table>
+	> ];
+
+  "box02" [ 
+	style = "filled" 
+	penwidth = 1 
+	fillcolor = "white" 
+	fontname = "Courier New" 
+	shape = "Mrecord" 
+	label =<
+		<table border="0" cellborder="0" cellpadding="3" bgcolor="white">
+
+		<tr><td align="left" port="r0"> mov    BYTE [esi],0x2d
+		</td></tr> 
+		<tr><td align="left" port="r0"> neg    ax
+		</td></tr> 
+
+		</table>
+	> ];
+
+  "box03" [ 
+	style = "filled"
+	penwidth = 1 
+	fillcolor = "white" 
+	fontname = "Courier New" 
+	shape = "Mrecord" 
+	label =<
+		<table border="0" cellborder="0" cellpadding="3" bgcolor="white">
+
+		<tr><td bgcolor="black" align="center" colspan="2">
+				<font color="white">.pi_positive:</font>
+		</td></tr>
+
+		<tr><td align="left" port="r0"> mov    bx,0xa 
+		</td></tr> 
+		<tr><td align="left" port="r0"> add    esi,0x6 
+		</td></tr> 
+		<tr><td align="left" port="r0"> mov    BYTE [esi],0x0 
+		</td></tr> 
+		<tr><td align="left" port="r0"> dec    esi
+		</td></tr> 
+		<tr><td align="left" port="r0"> mov    cx,0x5 
+		</td></tr> 
+
+		</table>
+	> ];
+
+  "box04" [ 
+	style = "filled"
+	penwidth = 1 
+	fillcolor = "white" 
+	fontname = "Courier New" 
+	shape = "Mrecord" 
+	label =<
+		<table border="0" cellborder="0" cellpadding="3" bgcolor="white">
+
+		<tr><td bgcolor="black" align="center" colspan="2">
+				<font color="white">.putint_repeat:</font>
+		</td></tr>
+
+		<tr><td align="left" port="r0"> mov    dx,0x0
+		</td></tr> 
+		<tr><td align="left" port="r0"> div    bx     
+		</td></tr> 
+		<tr><td align="left" port="r0"> add    dl,0x30 
+		</td></tr> 
+		<tr><td align="left" port="r0"> mov    BYTE PTR [esi],dl 
+		</td></tr> 
+		<tr><td align="left" port="r0"> dec    esi 
+		</td></tr> 
+		<tr><td align="left" port="r0"> dec    cx  
+		</td></tr> 
+		<tr><td align="left" port="r0"> cmp    ax,0x0 
+		</td></tr> 
+		<tr><td align="left" port="r0"> jne    .putint_repeat
+		</td></tr> 
+
+		</table>
+	> ];
+
+  "box05" [ 
+	style = "filled" 
+	penwidth = 1 
+	fillcolor = "white" 
+	fontname = "Courier New" 
+	shape = "Mrecord" 
+	label =<
+		<table border="0" cellborder="0" cellpadding="3" bgcolor="white">
+
+		<tr><td align="left" port="r0"> jcxz   .pi_write_number
+		</td></tr> 
+
+		</table>
+	> ];
+
+  "box06" [ 
+	style = "filled" 
+	penwidth = 1 
+	fillcolor = "white" 
+	fontname = "Courier New" 
+	shape = "Mrecord" 
+	label =<
+		<table border="0" cellborder="0" cellpadding="3" bgcolor="white">
+
+		<tr><td align="left" port="r0"> mov    bl,BYTE PTR ds:0x101
+		</td></tr> 
+		<tr><td align="left" port="r0"> mov    BYTE PTR [esi],bl
+		</td></tr> 
+		<tr><td align="left" port="r0"> cmp    bl,0x20
+		</td></tr> 
+		<tr><td align="left" port="r0"> jne    .pi_write_number
+		</td></tr> 
+
+		</table>
+	> ];
+
+  "box07" [ 
+	style = "filled" 
+	penwidth = 1 
+	fillcolor = "white" 
+	fontname = "Courier New" 
+	shape = "Mrecord" 
+	label =<
+		<table border="0" cellborder="0" cellpadding="3" bgcolor="white">
+
+		<tr><td align="left" port="r0"> inc    esi
+		</td></tr> 
+
+		</table>
+	> ];
+
+  "box08" [ 
+	style = "filled"
+	penwidth = 1 
+	fillcolor = "white" 
+	fontname = "Courier New" 
+	shape = "Mrecord" 
+	label =<
+		<table border="0" cellborder="0" cellpadding="3" bgcolor="white">
+
+		<tr><td bgcolor="black" align="center" colspan="2">
+				<font color="white">.pi_write_number:</font>
+		</td></tr>
+
+		<tr><td align="left" port="r0"> mov    ecx,esi
+		</td></tr> 
+		<tr><td align="left" port="r0"> call   proc_PutStr
+		</td></tr> 
+		<tr><td align="left" port="r0"> popa
+		</td></tr> 
+		<tr><td align="left" port="r0"> ret
+		</td></tr> 
+
+		</table>
+	> ];
+
+
+
+  box01 -> box02 [ penwidth = 1 fontsize = 14 fontcolor = "black" label = " ax<0" ];
+  box01 -> box03 [ penwidth = 1 fontsize = 14 fontcolor = "black" label = " ax>=0" ];
+
+  box02 -> box03 [ penwidth = 1 fontsize = 14 fontcolor = "black" ];
+
+  box03 -> box04 [ penwidth = 1 fontsize = 14 fontcolor = "black" ];
+
+  box04 -> box04 [ penwidth = 1 fontsize = 14 fontcolor = "black" label = " ax!=0" headport=ne tailport=se ];
+  box04 -> box05 [ penwidth = 1 fontsize = 14 fontcolor = "black" label = " ax==0" ];
+
+  box05 -> box06 [ penwidth = 1 fontsize = 14 fontcolor = "black" label = " cx!=0" ];
+  box05 -> box08 [ penwidth = 1 fontsize = 14 fontcolor = "black" label = " cx==0" ];
+
+  box06 -> box07 [ penwidth = 1 fontsize = 14 fontcolor = "black" label = " bl==0x20" ];
+  box06 -> box08 [ penwidth = 1 fontsize = 14 fontcolor = "black" label = " bl!=0x20" ];
+
+  box07 -> box08 [ penwidth = 1 fontsize = 14 fontcolor = "black" ];
+
+}
